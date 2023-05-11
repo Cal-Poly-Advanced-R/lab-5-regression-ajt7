@@ -64,11 +64,15 @@ simple_linear_regression <- function(dat, response, explanatory, method = NULL){
 #'@export
 multiple_linear_regression <- function(dat, response, method = NULL) {
 
+  y <- dat %>% pull({{response}})
+  x <- dat %>% select(-{{response}})
 
+  n <- nrow(dat)
+  #x <- cbind(rep(1,n), x)
 
   results <- 0 ### This should be a data frame, with columns named
                 ### "Intercept" and the same variable names as dat.
 
-  return(results)
+  return(x)
 
 }
