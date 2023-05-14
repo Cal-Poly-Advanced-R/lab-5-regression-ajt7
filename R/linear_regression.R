@@ -64,10 +64,30 @@ simple_linear_regression <- function(dat, response, explanatory, method = NULL){
 #'@export
 multiple_linear_regression <- function(dat, response, method = NULL) {
 
+  y <- dat %>% pull({{response}})
+  x <- dat %>% select(-{{response}})
 
+  x <- x %>%
+    mutate(intercept = 1, .before = 1)
 
-  results <- 0 ### This should be a data frame, with columns named
-                ### "Intercept" and the same variable names as dat.
+  x <- as.matrix(x)
+  y <- as.matrix(y)
+
+  #Transpose X, find XtX
+  x_t <- t(x)
+  xtx <- x_t %*% x
+
+  #Inverse
+  inverse_xtx <- solve(xtx)
+
+  #Find XtY
+  xty <- x_t %*% y
+
+  #Find coefficients
+  ### This should be a data frame, with columns named
+  ### "Intercept" and the same variable names as dat.
+  results <- inverse_xtx %*% xty
+
 
   return(results)
 
