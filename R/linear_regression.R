@@ -8,6 +8,8 @@
 #' @return A data frame of coefficients
 #'
 #' @import dplyr
+#' @importFrom tidyr pivot_wider
+#' @importFrom tibble rownames_to_column
 #'
 #' @export
 simple_linear_regression <- function(dat, response, explanatory, method = NULL){
@@ -89,6 +91,11 @@ multiple_linear_regression <- function(dat, response, method = NULL) {
   x <- as.matrix(x)
   y <- as.matrix(y)
 
+  #Names
+  explan_name <- dat %>%
+    select(-{{response}}) %>%
+    names()
+
   #Transpose X, find XtX
   x_t <- t(x)
   xtx <- x_t %*% x
@@ -103,7 +110,11 @@ multiple_linear_regression <- function(dat, response, method = NULL) {
   ### This should be a data frame, with columns named
   ### "Intercept" and the same variable names as dat.
   results <- inverse_xtx %*% xty
-
+  results <- as.data.frame(results)
+  results <- results %>%
+    rownames_to_column("Var") %>%
+    pivot_wider(names_from = Var, values_from = V1) %>%
+    rename("Intercept" = "intercept")
 
   return(results)
 
