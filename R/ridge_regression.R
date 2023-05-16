@@ -16,17 +16,37 @@
 #' @import dplyr
 #'
 #' @export
+#'
 ridge_regression <- function(dat, response, lambda) {
 
+  #Converting the response variable and the predictor variables into matrices and splitting them
+  response_col <- as.matrix(as.numeric(dat[[response]]), ncol = 1)
+  predictors <- as.matrix(select(dat, -{{response}}))
+
+  #Create the results data frame
+  results <- data.frame(matrix(0, ncol = ncol(predictors) + 2, nrow = length(lambda)))
+
+  #Set the column and row names within the results data frame
+  colnames(results)[1] <- "Intercept"
+  x <- ncol(predictors) + 1
+  colnames(results)[2:x] <- colnames(predictors)
+  colnames(results)[ncol(results)] <- "lambda"
 
 
-  results <- 0
-  ### This should be a data frame, with columns named
-  ### "Intercept" and the same variable names as dat, and also a column
-  ### called "lambda".
+  #For-loop (oops sorry Ms. Bodwin)
+  for (i in 1:length(lambda)) {
+    ridge_penalty <- lambda[i] * diag(ncol(predictors))
+
+    coefficients <- solve(t(predictors) %*% predictors + ridge_penalty) %*% t(predictors) %*% response_col
+
+    results[i, 1] <- coefficients[1]  # Assigning intercept value
+
+    results[i, 2:(ncol(results) - 1)] <- coefficients[2:(ncol(coefficients))]  # Assigning remaining coefficients
+
+    results[i, ncol(results)] <- lambda[i]  # Assigning lambda value
+  }
 
   return(results)
-
 }
 
 #' Determines the best penalty term from a set of options
