@@ -30,7 +30,9 @@ variable_multiply <- combined_set |>
   select(-V1)
 t_variable_multiply <- as.data.frame(variable_multiply |> t())
 
-returned_coefficient_prediction <- t_variable_multiply |> mutate(Predicted_Value = rowSums(across(everything()))) |>
+returned_coefficient_prediction <- t_variable_multiply |> mutate(Predicted_Value = rowSums(across(everything())),
+                                                                 Intercept = intercept,
+                                                                 Predicted_Value = Predicted_Value+Intercept) |>
   select(Predicted_Value)
 returned_coefficient_prediction
 }
