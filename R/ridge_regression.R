@@ -20,7 +20,7 @@
 ridge_regression <- function(dat, response, lambda) {
 
   #Converting the response variable and the predictor variables into matrices and splitting them
-  response_col <- as.matrix(as.numeric(dat[[response]]), ncol = 1)
+  response_col <- as.matrix(as.numeric(dat[[deparse(substitute(response))]]), ncol = 1)#ChatGPT referenced to help change the response from needing quotations
   predictors <- as.matrix(select(dat, -{{response}}))
 
   #Create the results data frame
@@ -39,11 +39,11 @@ ridge_regression <- function(dat, response, lambda) {
 
     coefficients <- solve(t(predictors) %*% predictors + ridge_penalty) %*% t(predictors) %*% response_col
 
-    results[i, 1] <- coefficients[1]  # Assigning intercept value
+    results[i, 1] <- coefficients[1]  #Assigning intercept value
 
-    results[i, 2:(ncol(results) - 1)] <- coefficients[2:(ncol(coefficients))]  # Assigning remaining coefficients
+    results[i, 2:(ncol(results) - 1)] <- coefficients[2:(ncol(coefficients))]  #Assigning remaining coefficients
 
-    results[i, ncol(results)] <- lambda[i]  # Assigning lambda value
+    results[i, ncol(results)] <- lambda[i]  #Assigning lambda value
   }
 
   return(results)
@@ -68,6 +68,18 @@ ridge_regression <- function(dat, response, lambda) {
 #' @export
 find_best_lambda <- function(train_dat, test_dat, response, lambdas) {
 
+  lambda_errors <- data.frame(lambda = lambdas, error = numeric(length(lambdas)))
+
+  for (i in seq(lambdas)) {
+
+    lambda <- lambdas[i]
+
+    ridge_model <- ridge_regression(dat = train_dat, mpg, lambda)
+
+    predicted_values <- predict(as.matrix(ridge_model), newdata = as.matrix(test_dat))
+
+
+  }
 
   ### lambda_errors should be a data frame with two columns: "lambda" and "error"
   ### For each lambda, you should record the resulting Sum of Squared error
@@ -76,3 +88,7 @@ find_best_lambda <- function(train_dat, test_dat, response, lambdas) {
 
   return(lambda_errors)
 }
+
+
+train_dat = mtcars
+test_dat = mtcars
