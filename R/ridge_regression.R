@@ -14,39 +14,86 @@
 #' @return A data frame of coefficients
 #'
 #' @import dplyr
+#' @import purrr
+#'
 #'
 #' @export
 #'
+
+
 ridge_regression <- function(dat, response, lambda) {
 
-  #Converting the response variable and the predictor variables into matrices and splitting them
-  response_col <- as.matrix(as.numeric(dat[[deparse(substitute(response))]]), ncol = 1)#ChatGPT referenced to help change the response from needing quotations
-  predictors <- as.matrix(select(dat, -{{response}}))
+  results <- map(lambda, ~find_one_lambda(dat, {{response}}, .x), .id = "lambda")
 
-  #Create the results data frame
-  results <- data.frame(matrix(0, ncol = ncol(predictors) + 2, nrow = length(lambda)))
-
-  #Set the column and row names within the results data frame
-  colnames(results)[1] <- "Intercept"
-  x <- ncol(predictors) + 1
-  colnames(results)[2:x] <- colnames(predictors)
-  colnames(results)[ncol(results)] <- "lambda"
-
-
-  #For-loop (oops sorry Ms. Bodwin)
-  for (i in 1:length(lambda)) {
-    ridge_penalty <- lambda[i] * diag(ncol(predictors))
-
-    coefficients <- solve(t(predictors) %*% predictors + ridge_penalty) %*% t(predictors) %*% response_col
-
-    results[i, 1] <- coefficients[1]  #Assigning intercept value
-
-    results[i, 2:(ncol(results) - 1)] <- coefficients[2:(ncol(coefficients))]  #Assigning remaining coefficients
-
-    results[i, ncol(results)] <- lambda[i]  #Assigning lambda value
-  }
+  results <- bind_rows(results)
 
   return(results)
+}
+
+x = ridge_regression(mtcars, mpg, c(0.1, 0.2, 0.3))
+
+#' Implements ridge regression with many predictors for one value of lambda (a helper function)
+#'
+#' This function computes coefficients for ridge regression with one lambda
+#' All columns of the provided data frame are used as predictors, except the
+#' one specified as a response.
+#'
+#' No interaction terms are included.
+#'
+#'
+#' @param dat A data frame
+#' @param response The name of a response variable in the data frame (unquoted)
+#' @param lambda A singular value to try as a penalty term
+#'
+#' @return A data frame of coefficients
+#'
+#' @import dplyr
+#' @import tidyverse
+#'
+#'
+
+find_one_lambda <- function(dat, response, lambda) {
+
+  y <- dat %>% pull({{response}})
+  x <- dat %>% select(-{{response}})
+
+  x <- x %>%
+    mutate(intercept = 1, .before = 1)
+
+  x <- as.matrix(x)
+  y <- as.matrix(y)
+
+  #Names
+  explan_name <- dat %>%
+    select(-{{response}}) %>%
+    names()
+
+
+  #Transpose X, find XtX
+  x_t <- t(x)
+  xtx <- x_t %*% x + (lambda * diag(x))
+
+  #Inverse
+  inverse_xtx <- solve(xtx)
+
+  #Find XtY
+  xty <- x_t %*% y
+
+  #Find coefficients
+  ### This should be a data frame, with columns named
+  ### "Intercept" and the same variable names as dat.
+  results <- inverse_xtx %*% xty
+  results <- as.data.frame(results)
+  results <- results %>%
+    rownames_to_column("Var") %>%
+    pivot_wider(names_from = Var, values_from = V1) %>%
+    rename("Intercept" = "intercept") %>%
+    mutate("lambda" = lambda)
+
+  results <- as.data.frame(results)
+
+  return(results)
+
 }
 
 #' Determines the best penalty term from a set of options
@@ -68,18 +115,10 @@ ridge_regression <- function(dat, response, lambda) {
 #' @export
 find_best_lambda <- function(train_dat, test_dat, response, lambdas) {
 
-  lambda_errors <- data.frame(lambda = lambdas, error = numeric(length(lambdas)))
-
-  for (i in seq(lambdas)) {
-
-    lambda <- lambdas[i]
-
-    ridge_model <- ridge_regression(dat = train_dat, mpg, lambda)
-
-    predicted_values <- predict(as.matrix(ridge_model), newdata = as.matrix(test_dat))
 
 
-  }
+
+
 
   ### lambda_errors should be a data frame with two columns: "lambda" and "error"
   ### For each lambda, you should record the resulting Sum of Squared error
