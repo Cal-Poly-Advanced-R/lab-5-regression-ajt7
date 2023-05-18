@@ -30,7 +30,10 @@ ridge_regression <- function(dat, response, lambda) {
   return(results)
 }
 
-x = ridge_regression(mtcars, mpg, c(0.1, 0.2, 0.3))
+
+library(purrr)
+library(tidyverse)
+library(dplyr)
 
 #' Implements ridge regression with many predictors for one value of lambda (a helper function)
 #'
@@ -54,7 +57,7 @@ x = ridge_regression(mtcars, mpg, c(0.1, 0.2, 0.3))
 
 find_one_lambda <- function(dat, response, lambda) {
 
-  y <- dat %>% pull({{response}})
+  y <- dat %>% select({{response}})
   x <- dat %>% select(-{{response}})
 
   x <- x %>%
@@ -115,8 +118,22 @@ find_one_lambda <- function(dat, response, lambda) {
 #' @export
 find_best_lambda <- function(train_dat, test_dat, response, lambdas) {
 
+  lambda_errors <- data.frame(lambda = numeric(),
+                              error = numeric())
 
+  for (lambda in lambdas) {
 
+    train_results <- get_betas(train_dat, response, lambda)
+    test_results <- get_betas(test_dat, response, lambda)
+
+    y_train <- get_predictions(train_dat, train_results)
+    y_test <- get_predictions(test_dat, test_results)
+
+    mse <- get_test_error(y_train, y_test)
+
+    lambda_errors <- rbind(lambda_errors, data.frame(lambda = lambda, error = mse))
+
+  }
 
 
 
@@ -128,6 +145,80 @@ find_best_lambda <- function(train_dat, test_dat, response, lambdas) {
   return(lambda_errors)
 }
 
+#' Computes ridge regression on the training and testing data sets
+#'
+#' Returns coeffecients
+#'
+#' No interaction terms are included.
+#'
+#'
+#' @param train_dat A data frame to construct the model from
+#' @param test_dat A data frame to test the model on
+#' @param response The name of a response variable in the data frame (unquoted)
+#' @param lambda A penalty term to try
+#'
+#' @return Two data frames of coeffecients - one for test one for train
+#'
+#'
 
-train_dat = mtcars
-test_dat = mtcars
+get_betas <- function(dat, response, lambda){
+
+
+  dat_results <- ridge_regression(dat, response, lambda)
+  dat_results <- subset(dat_results, select = -c(Intercept, lambda))
+
+  return(dat_results)
+}
+
+#' Get predictions from the beta values
+#'
+#' Returns
+#'
+#' No interaction terms are included.
+#'
+#'
+#' @param train_dat A data frame to construct the model from
+#' @param test_dat A data frame to test the model on
+#' @param train_results from get_betas
+#' @param test_results from get_betas
+#'
+#' @return matrix y with predicted values
+#'
+#'
+
+get_predictions <- function(dat, ridge_results){
+
+  dat <- dat %>% select(-{{response}})
+
+  dat <- as.matrix(dat)
+
+  ridge_results <- as.matrix(t(ridge_results))
+
+  predicted_values <- dat %*% ridge_results
+
+  return(predicted_values)
+
+}
+
+#' Returns the mean squared error value for that lambda
+#'
+#' No interaction terms are included.
+#'
+#'
+#' @param y_test A data frame to construct the model from
+#' @param y_train A data frame to test the model on
+#'
+#' @return mean squared error
+#'
+#'
+
+get_test_error <- function(y_train, y_test){
+
+  error_vector <- y_train - y_test
+  error_squared <- error_vector^2
+
+  mse <- sum(error_squared / length(error_squared))
+
+  return(mse)
+}
+
