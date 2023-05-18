@@ -9,15 +9,13 @@
 #' @import dplyr
 #'
 #' @export
-slr_gd <- function(dat, response, explanatory){
+slr_gd <- function(dat, response, explanatory, iterations){
 
-  x <- dat %>% pull({{explanatory}})
-  y <- dat %>% pull({{response}})
+  for(i in length({{iterations}})) {
 
-  explan_name <- dat %>%
-    select({{explanatory}}) %>%
-    names()
+    results <- derivate_wrt_mc({{dat}}, {{response}}, {{explanatory}})
 
+  }
 
   ### Compute coefficients by gradient descent
   ### Return a data frame of the same form as in the `simple_linear_regression`
@@ -83,25 +81,35 @@ mlr_qr <- function(dat, response) {
 
 }
 
-derivate_wrt_mc <- function(dat, response, explanatory) {
+loss <- function(y, y_pred) {
 
-  browser()
+  mean((y - y_pred) ^ 2)
+
+}
+
+
+#500 iterations is magic number right now
+derivate_wrt_mc <- function(dat, response, explanatory, iterations) {
 
   x <- dat %>% pull({{explanatory}})
   y <- dat %>% pull({{response}})
 
-  m <- 3
-  c <- 2.5
+  m <- 0
+  c <- 0
   n <- length(x)
-  L <- 0.001
+  L <- 0.01
 
-  y_pred <- (m * x) + c
+  for(i in 1:iterations) {
 
-  Deriv_m = (-2 / n) * sum(x * (y - y_pred))
-  Deriv_c = (-2 / n) * sum(y - y_pred)
+    y_pred <- (m * x) + c
 
-  m <- m - L * Deriv_m
-  c <- c - L * Deriv_c
+    Deriv_m = (-2 / n) * sum(x * (y - y_pred))
+    Deriv_c = (-2 / n) * sum(y - y_pred)
+
+    m <- m - L * Deriv_m
+    c <- c - L * Deriv_c
+
+  }
 
   return(c(m, c))
 
