@@ -30,11 +30,6 @@ ridge_regression <- function(dat, response, lambda) {
   return(results)
 }
 
-
-library(purrr)
-library(tidyverse)
-library(dplyr)
-
 #' Implements ridge regression with many predictors for one value of lambda (a helper function)
 #'
 #' This function computes coefficients for ridge regression with one lambda
@@ -135,13 +130,6 @@ find_best_lambda <- function(train_dat, test_dat, response, lambdas) {
 
   }
 
-
-
-  ### lambda_errors should be a data frame with two columns: "lambda" and "error"
-  ### For each lambda, you should record the resulting Sum of Squared error
-  ### (i.e., the predicted value minus the real value squared) from prediction
-  ### on the test dataset.
-
   return(lambda_errors)
 }
 
@@ -152,12 +140,11 @@ find_best_lambda <- function(train_dat, test_dat, response, lambdas) {
 #' No interaction terms are included.
 #'
 #'
-#' @param train_dat A data frame to construct the model from
-#' @param test_dat A data frame to test the model on
+#' @param dat the data frame
 #' @param response The name of a response variable in the data frame (unquoted)
 #' @param lambda A penalty term to try
 #'
-#' @return Two data frames of coeffecients - one for test one for train
+#' @return data frame of coeffecients
 #'
 #'
 
@@ -177,13 +164,13 @@ get_betas <- function(dat, response, lambda){
 #' No interaction terms are included.
 #'
 #'
-#' @param train_dat A data frame to construct the model from
-#' @param test_dat A data frame to test the model on
-#' @param train_results from get_betas
-#' @param test_results from get_betas
+#' @param dat the data frame to be turned into design matrix
+#' @param response the response variable
+#' @param ridge_results the beta values
 #'
 #' @return matrix y with predicted values
 #'
+#' @import dplyr
 #'
 
 get_predictions <- function(dat, response, ridge_results){
