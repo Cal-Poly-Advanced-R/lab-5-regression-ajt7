@@ -57,7 +57,7 @@ library(dplyr)
 
 find_one_lambda <- function(dat, response, lambda) {
 
-  y <- dat %>% select({{response}})
+  y <- dat %>% pull({{response}})
   x <- dat %>% select(-{{response}})
 
   x <- x %>%
@@ -123,11 +123,11 @@ find_best_lambda <- function(train_dat, test_dat, response, lambdas) {
 
   for (lambda in lambdas) {
 
-    train_results <- get_betas(train_dat, response, lambda)
-    test_results <- get_betas(test_dat, response, lambda)
+    train_results <- get_betas(train_dat, {{response}}, lambda)
+    test_results <- get_betas(test_dat, {{response}}, lambda)
 
-    y_train <- get_predictions(train_dat, train_results)
-    y_test <- get_predictions(test_dat, test_results)
+    y_train <- get_predictions(train_dat, {{response}}, train_results)
+    y_test <- get_predictions(test_dat, {{response}}, test_results)
 
     mse <- get_test_error(y_train, y_test)
 
@@ -164,7 +164,7 @@ find_best_lambda <- function(train_dat, test_dat, response, lambdas) {
 get_betas <- function(dat, response, lambda){
 
 
-  dat_results <- ridge_regression(dat, response, lambda)
+  dat_results <- ridge_regression(dat, {{response}}, lambda)
   dat_results <- subset(dat_results, select = -c(Intercept, lambda))
 
   return(dat_results)
@@ -186,7 +186,7 @@ get_betas <- function(dat, response, lambda){
 #'
 #'
 
-get_predictions <- function(dat, ridge_results){
+get_predictions <- function(dat, response, ridge_results){
 
   dat <- dat %>% select(-{{response}})
 
