@@ -34,7 +34,6 @@ ridge_regression <- function(dat, response, lambda) {
 library(purrr)
 library(tidyverse)
 library(dplyr)
-x = ridge_regression(mtcars, mpg, c(0.1, 0.2, 0.3))
 
 #' Implements ridge regression with many predictors for one value of lambda (a helper function)
 #'
@@ -58,7 +57,7 @@ x = ridge_regression(mtcars, mpg, c(0.1, 0.2, 0.3))
 
 find_one_lambda <- function(dat, response, lambda) {
 
-  y <- dat %>% pull({{response}})
+  y <- dat %>% select({{response}})
   x <- dat %>% select(-{{response}})
 
   x <- x %>%
@@ -119,6 +118,23 @@ find_one_lambda <- function(dat, response, lambda) {
 #' @export
 find_best_lambda <- function(train_dat, test_dat, response, lambdas) {
 
+  lambda_errors <- data.frame(lambda = numeric(),
+                              error = numeric())
+
+  for (lambda in lambdas) {
+
+    train_results <- get_betas(train_dat, response, lambda)
+    test_results <- get_betas(test_dat, response, lambda)
+
+    y_train <- get_predictions(train_dat, train_results)
+    y_test <- get_predictions(test_dat, test_results)
+
+    mse <- get_test_error(y_train, y_test)
+
+    lambda_errors <- rbind(lambda_errors, data.frame(lambda = lambda, error = mse))
+
+  }
+
 
 
   ### lambda_errors should be a data frame with two columns: "lambda" and "error"
@@ -139,22 +155,19 @@ find_best_lambda <- function(train_dat, test_dat, response, lambdas) {
 #' @param train_dat A data frame to construct the model from
 #' @param test_dat A data frame to test the model on
 #' @param response The name of a response variable in the data frame (unquoted)
-#' @param lambda A vector of penalty terms to try
+#' @param lambda A penalty term to try
 #'
 #' @return Two data frames of coeffecients - one for test one for train
 #'
 #'
 
-get_betas <- function(train_dat, test_dat, response, lambda){
+get_betas <- function(dat, response, lambda){
 
-  train_results <- ridge_regression(train_dat, response, lambda)
-  train_results <- subset(train_results, select = -c(Intercept, lambda))
 
-  test_results <- ridge_regression(test_dat, response, lambda)
-  test_results <- subset(test_results, select = -c(Intercept, lambda))
+  dat_results <- ridge_regression(dat, response, lambda)
+  dat_results <- subset(dat_results, select = -c(Intercept, lambda))
 
-  return(train_results)
-  return(test_results)
+  return(dat_results)
 }
 
 #' Get predictions from the beta values
@@ -166,64 +179,46 @@ get_betas <- function(train_dat, test_dat, response, lambda){
 #'
 #' @param train_dat A data frame to construct the model from
 #' @param test_dat A data frame to test the model on
-#' @param response The name of a response variable in the data frame (unquoted)
-#' @param lambda A vector of penalty terms to try
+#' @param train_results from get_betas
+#' @param test_results from get_betas
 #'
 #' @return matrix y with predicted values
 #'
 #'
 
-get_predictions <- function(train_dat, test_dat, train_results, test_results){
+get_predictions <- function(dat, ridge_results){
 
-  x_train <- train_dat %>% select(-{{response}})
-  x_test <- test_dat %>% select(-{{response}})
+  dat <- dat %>% select(-{{response}})
 
-  x_train <- as.matrix(x_train)
-  x_test <- as.matrix(x_test)
+  dat <- as.matrix(dat)
 
-  train_results <- as.matrix(t(train_results))
-  test_results <- as.matrix(t(test_results))
+  ridge_results <- as.matrix(t(ridge_results))
 
-  y_train <- x_train %*% train_results
-  y_test <- x_test %*% test_results
+  predicted_values <- dat %*% ridge_results
 
-  return(y_train)
-  return(y_test)
+  return(predicted_values)
 
 }
 
-#'
-#'
-#' Returns
+#' Returns the mean squared error value for that lambda
 #'
 #' No interaction terms are included.
 #'
 #'
-#' @param train_dat A data frame to construct the model from
-#' @param test_dat A data frame to test the model on
-#' @param response The name of a response variable in the data frame (unquoted)
-#' @param lambda A vector of penalty terms to try
+#' @param y_test A data frame to construct the model from
+#' @param y_train A data frame to test the model on
 #'
-#' @return matrix y with predicted values
+#' @return mean squared error
 #'
 #'
 
-get_test_error <- function(){
+get_test_error <- function(y_train, y_test){
 
+  error_vector <- y_train - y_test
+  error_squared <- error_vector^2
 
+  mse <- sum(error_squared / length(error_squared))
+
+  return(mse)
 }
-
-
-
-
-ridge_results <- ridge_regression(mtcars, mpg, 1)
-ridge_results <- subset(ridge_results, select = -c(Intercept,lambda))
-ridge_results <- as.matrix(t(ridge_results))
-
-x_design <- mtcars %>% select(-mpg)
-x_design <- as.matrix(x_design)
-
-y <- x_design %*% ridge_results
-
-
 
