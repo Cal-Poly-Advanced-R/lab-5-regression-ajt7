@@ -4,7 +4,7 @@
 \alias{mlr_gd}
 \title{Implements linear regression with many predictors by gradient descent}
 \usage{
-mlr_gd(dat, response, learning_rate = 1e-04, iterations = 20000)
+mlr_gd(dat, response, learning_rate = 0.005, iterations = 30000)
 }
 \arguments{
 \item{dat}{A data frame}
