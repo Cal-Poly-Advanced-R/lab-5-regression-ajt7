@@ -9,15 +9,22 @@
 #' @import dplyr
 #'
 #' @export
-slr_gd <- function(dat, response, explanatory, iterations = 20000){
+slr_gd <- function(dat, response, explanatory, iterations = 30000){
+
+  dat <- dat %>%
+    mutate_all(scale)
 
   x <- dat %>% pull({{explanatory}})
   y <- dat %>% pull({{response}})
 
+  explan_name <- dat %>%
+    select({{explanatory}}) %>%
+    names()
+
   m <- 0
   c <- 0
   n <- length(x)
-  L <- 0.05
+  L <- 0.005
 
   for(i in 1:iterations) {
 
@@ -36,10 +43,12 @@ slr_gd <- function(dat, response, explanatory, iterations = 20000){
     Coefficient = m
     )
 
-  return(results)
-
   ### Compute coefficients by gradient descent
   ### Return a data frame of the same form as in the `simple_linear_regression`
+  names(results)[2] <- explan_name
+
+
+  return(results)
 
 }
 
@@ -61,9 +70,10 @@ slr_gd <- function(dat, response, explanatory, iterations = 20000){
 #' @import dplyr
 #'
 #'@export
-mlr_gd <- function(dat, response, learning_rate = 0.001, iterations = 20000) {
+mlr_gd <- function(dat, response, learning_rate = 0.0001, iterations = 20000) {
 
-  browser()
+  dat <- dat %>%
+    mutate_all(scale)
 
   y <- dat %>% pull({{response}})
   x <- dat %>% select(-{{response}})
