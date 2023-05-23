@@ -4,7 +4,7 @@
 \alias{slr_gd}
 \title{Implements simple linear regression by gradient descent}
 \usage{
-slr_gd(dat, response, explanatory)
+slr_gd(dat, response, explanatory, iterations = 30000)
 }
 \arguments{
 \item{dat}{A data frame}
