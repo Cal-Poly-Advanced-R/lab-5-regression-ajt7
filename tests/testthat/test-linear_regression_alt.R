@@ -22,7 +22,10 @@ test_that("multiple linear regression by gradient descent is correct", {
     dplyr::select(mpg, hp, cyl) %>%
     mlr_gd(mpg)
 
-  mass_result <- lm(mpg ~ hp + cyl, data = mtcars)
+  scaled_mtcars <- mtcars %>%
+    mutate_all(scale)
+
+  mass_result <- lm(mpg ~ hp + cyl, data = scaled_mtcars)
 
   expect_equal(coef(mass_result)[['hp']], my_result$hp,
                tolerance = 0.05, scale = abs(my_result$hp))

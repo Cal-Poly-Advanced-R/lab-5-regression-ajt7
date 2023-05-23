@@ -70,7 +70,7 @@ slr_gd <- function(dat, response, explanatory, iterations = 30000){
 #' @import dplyr
 #'
 #'@export
-mlr_gd <- function(dat, response, learning_rate = 0.0001, iterations = 20000) {
+mlr_gd <- function(dat, response, learning_rate = 0.005, iterations = 30000) {
 
   dat <- dat %>%
     mutate_all(scale)
@@ -111,8 +111,13 @@ mlr_gd <- function(dat, response, learning_rate = 0.0001, iterations = 20000) {
 
   ### Compute coefficients by gradient descent
   ### Return a data frame of the same form as in the `multiple_linear_regression`
+  results <- as.data.frame(thetas)
+  results <- results %>%
+    rownames_to_column("Var") %>%
+    pivot_wider(names_from = Var, values_from = V1) %>%
+    rename("Intercept" = "intercept")
 
-  return(thetas)
+  return(results)
 
 }
 
@@ -141,17 +146,6 @@ mlr_qr <- function(dat, response) {
   ### Return a data frame of the same form as in the `multiple_linear_regression`
 
   return(results)
-
-}
-
-
-#' Loss/Cost Function for multivariate gradient descent
-#'
-
-loss_function <- function(X, y, m, theta){
-
-  #Calculate cost
-  sum((X %*% theta - y) ^ 2) / (2 * m)
 
 }
 
