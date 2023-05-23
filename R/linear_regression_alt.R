@@ -61,14 +61,48 @@ slr_gd <- function(dat, response, explanatory, iterations = 20000){
 #' @import dplyr
 #'
 #'@export
-mlr_gd <- function(dat, response) {
+mlr_gd <- function(dat, response, learning_rate = 0.001, iterations = 20000) {
 
+  browser()
+
+  y <- dat %>% pull({{response}})
+  x <- dat %>% select(-{{response}})
+
+  #Names of explanatory variables
+  explan_name <- dat %>%
+    select(-{{response}}) %>%
+    names()
+
+  #Adding intercept column
+  x <- x %>%
+    mutate(intercept = 1, .before = 1)
+
+  #Getting number of explanatory variables
+  num_explanatory <- ncol(x)
+
+  #Converting to matrices
+  x <- as.matrix(x)
+  y <- as.matrix(y)
+
+  #Initialize a of vector of coefficient estimates (zeros)
+  thetas <- rep(0, num_explanatory)
+
+  for (i in 1:iterations) {
+
+    y_pred <- (x %*% thetas)
+
+    deriv_thetas <- (-2 / num_explanatory) * t(x) %*% (y - y_pred)
+
+    #Updating thetas based on derivative of slope
+    thetas <- thetas - (learning_rate * deriv_thetas)
+
+  }
 
 
   ### Compute coefficients by gradient descent
   ### Return a data frame of the same form as in the `multiple_linear_regression`
 
-  return(results)
+  return(thetas)
 
 }
 
@@ -101,9 +135,18 @@ mlr_qr <- function(dat, response) {
 }
 
 
+#' Loss/Cost Function for multivariate gradient descent
+#'
 
-loss <- function(y, y_pred) {
+loss_function <- function(X, y, m, theta){
 
-  mean((y - y_pred) ^ 2)
+  #Calculate cost
+  sum((X %*% theta - y) ^ 2) / (2 * m)
 
 }
+
+
+
+
+
+
