@@ -36,6 +36,10 @@ slr_gd <- function(dat, response, explanatory, iterations = 30000){
     m <- m - L * Deriv_m
     c <- c - L * Deriv_c
 
+    if (isTRUE(all.equal((L * Deriv_m), 0)) == TRUE) {
+      break
+    }
+
   }
 
   results <- data.frame(
@@ -99,12 +103,19 @@ mlr_gd <- function(dat, response, learning_rate = 0.005, iterations = 30000) {
 
   for (i in 1:iterations) {
 
+
     y_pred <- (x %*% thetas)
 
     deriv_thetas <- (-2 / num_explanatory) * t(x) %*% (y - y_pred)
 
     #Updating thetas based on derivative of slope
-    thetas <- thetas - (learning_rate * deriv_thetas)
+    step_size <- learning_rate * deriv_thetas
+
+    thetas <- thetas - step_size
+
+    if (isTRUE(all.equal(step_size, 0)) == TRUE) {
+      break
+    }
 
   }
 
