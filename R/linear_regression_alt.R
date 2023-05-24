@@ -147,11 +147,37 @@ mlr_gd <- function(dat, response, learning_rate = 0.005, iterations = 30000) {
 #' @return A data frame of coefficients
 #'
 #' @import dplyr
+#' @import tidyverse
 #'
 #'@export
 mlr_qr <- function(dat, response) {
 
+  y <- dat %>% pull({{response}})
+  x <- dat %>% select(-{{response}})
 
+  x <- x %>%
+    mutate(intercept = 1, .before = 1)
+
+  x <- as.matrix(x)
+  y <- as.matrix(y)
+
+  #Names
+  explan_name <- dat %>%
+    select(-{{response}}) %>%
+    names()
+
+  QR_X <- qr(x)
+
+  Q <- qr.Q(QR_X)
+  R <- qr.R(QR_X)
+
+  results <- solve(R) %*% t(Q) %*% y
+
+  results <- as.data.frame(results)
+  results <- results %>%
+    rownames_to_column("Var") %>%
+    pivot_wider(names_from = Var, values_from = V1) %>%
+    rename("Intercept" = "intercept")
 
   ### Compute coefficients by QR decomposition
   ### Return a data frame of the same form as in the `multiple_linear_regression`
@@ -159,9 +185,4 @@ mlr_qr <- function(dat, response) {
   return(results)
 
 }
-
-
-
-
-
 
