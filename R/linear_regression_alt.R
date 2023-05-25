@@ -3,6 +3,7 @@
 #' @param dat A data frame
 #' @param response The name of a response variable in the data frame (unquoted)
 #' @param explanatory The name of the explanatory variable in the data frame (unquoted)
+#' @param iterations Number of iterations for gradient descent to run
 #'
 #' @return A data frame of coefficients
 #'
@@ -68,6 +69,8 @@ slr_gd <- function(dat, response, explanatory, iterations = 30000){
 #'
 #' @param dat A data frame
 #' @param response The name of a response variable in the data frame (unquoted)
+#' @param learning_rate The learning rate controls how quickly the model is adapted to the problem
+#' @param iterations Number of iterations for gradient descent to run
 #'
 #' @return A data frame of coefficients
 #'
