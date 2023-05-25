@@ -113,7 +113,7 @@ mlr_gd <- function(dat, response, learning_rate = 0.005, iterations = 30000) {
 
     thetas <- thetas - step_size
 
-    if (isTRUE(all.equal(step_size, 0)) == TRUE) {
+    if (all(step_size < 0.0000001)) {
       break
     }
 
