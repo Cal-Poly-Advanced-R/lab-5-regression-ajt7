@@ -1,4 +1,4 @@
-#' Implements simple linear regression by gradient descent
+#' Implements logit regression
 #'
 #' @param dat A data frame
 #' @param binary The name of a binary response variable in the data frame (unquoted)

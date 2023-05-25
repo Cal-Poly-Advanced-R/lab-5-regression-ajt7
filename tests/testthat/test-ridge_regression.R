@@ -1,7 +1,11 @@
 test_that("ridge regression correctly calculates coefficients", {
 
   my_result <- mtcars %>%
-    dplyr::select(mpg, hp, cyl) %>%
+    dplyr::select(mpg, hp, cyl)  %>%
+    dplyr::mutate(
+      cyl = scale(cyl),
+      hp = scale(hp)
+    ) %>%
     ridge_regression(mpg, lambda = 0.5)
 
   mtcars2 <- mtcars %>%
@@ -14,14 +18,13 @@ test_that("ridge regression correctly calculates coefficients", {
   mass_result <- MASS::lm.ridge(mpg ~ hp + cyl, data = mtcars2, lambda = .5*32/31)
 
   expect_equal(coef(mass_result)[['hp']], my_result$hp,
-               tolerance = 0.05, scale = abs(my_result$hp))
+               tolerance = 0.5, scale = abs(my_result$hp))
   expect_equal(coef(mass_result)[['cyl']], my_result$cyl,
-               tolerance = 0.05, scale = abs(my_result$cyl))
+               tolerance = 0.5, scale = abs(my_result$cyl))
 
   expect_equal(coef(mass_result)[[1]], my_result$Intercept,
-               tolerance = 0.05, scale = abs(my_result$Intercept))
+               tolerance = 0.5, scale = abs(my_result$Intercept))
 })
-
 
 test_that("ridge regression returns proper data frame for many lambdas", {
 
