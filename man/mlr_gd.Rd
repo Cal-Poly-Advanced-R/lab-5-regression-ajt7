@@ -10,6 +10,10 @@ mlr_gd(dat, response, learning_rate = 0.005, iterations = 30000)
 \item{dat}{A data frame}
 
 \item{response}{The name of a response variable in the data frame (unquoted)}
+
+\item{learning_rate}{The learning rate controls how quickly the model is adapted to the problem}
+
+\item{iterations}{Number of iterations for gradient descent to run}
 }
 \value{
 A data frame of coefficients
