@@ -16,19 +16,21 @@
 #'
 #' @export
 
-lasso_gd <- function(dat, response, learning_rate = 0.05, lambda = 0.8, iterations = 50000) {
-
-  #Scaling all data
-  dat <- dat %>%
-    mutate_all(scale)
+lasso_gd <- function(dat, response, learning_rate = 0.001, lambda = 0.5, iterations = 10000) {
 
   y <- dat %>% pull({{response}})
   x <- dat %>% select(-{{response}})
+
+  #Scaling explanatory
+  x <- x %>%
+    mutate_all(scale)
 
   #Names of explanatory variables
   explan_name <- dat %>%
     select(-{{response}}) %>%
     names()
+
+  explan_name <- c("Intercept", explan_name)
 
   #Adding intercept column
   x <- x %>%
@@ -42,7 +44,7 @@ lasso_gd <- function(dat, response, learning_rate = 0.05, lambda = 0.8, iteratio
   y <- as.matrix(y)
 
   #Initialize a of vector of coefficient estimates (zeros)
-  thetas <- rep(0, num_explanatory)
+  thetas <- rep(1, num_explanatory)
 
   for(i in 1:iterations) {
 
@@ -66,9 +68,8 @@ lasso_gd <- function(dat, response, learning_rate = 0.05, lambda = 0.8, iteratio
   #Returning data frame of named coefficients
   results <- as.data.frame(thetas)
   results <- results %>%
-    rownames_to_column("Var") %>%
-    pivot_wider(names_from = Var, values_from = V1) %>%
-    rename("Intercept" = "intercept")
+    tibble::add_column(Var = explan_name, .before = "thetas") %>%
+    pivot_wider(names_from = Var, values_from = thetas)
 
   return(results)
 
@@ -87,10 +88,21 @@ lasso_gd <- function(dat, response, learning_rate = 0.05, lambda = 0.8, iteratio
 
 lasso_loss <- function(num_explanatory, x, y, y_pred, lambda, thetas) {
 
-  ifelse(thetas > 0,
-         deriv_thetas <- (-2 / num_explanatory) * (t(x) %*% (y - y_pred) - lambda * abs(sum(thetas))),
-         deriv_thetas <- (-2 / num_explanatory) * (t(x) %*% (y - y_pred) + lambda * abs(sum(thetas)))
-  )
+  deriv_thetas <- rep(1, num_explanatory)
+
+  for (w in 1:length(thetas)) {
+
+    if(w > 0) {
+
+           deriv_thetas[w] <- as.data.frame((-2 / num_explanatory) * (t(x) %*% (y - y_pred)) + lambda)[w , ]
+
+    } else {
+
+           deriv_thetas[w] <- as.data.frame((-2 / num_explanatory) * (t(x) %*% (y - y_pred)) - lambda)[w , ]
+
+    }
+
+  }
 
   return(deriv_thetas)
 

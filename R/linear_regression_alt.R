@@ -10,13 +10,13 @@
 #' @import dplyr
 #'
 #' @export
-slr_gd <- function(dat, response, explanatory, iterations = 30000){
-
-  dat <- dat %>%
-    mutate_all(scale)
+slr_gd <- function(dat, response, explanatory, iterations = 30000) {
 
   x <- dat %>% pull({{explanatory}})
   y <- dat %>% pull({{response}})
+
+  x <- scale(x)
+
 
   explan_name <- dat %>%
     select({{explanatory}}) %>%
@@ -34,10 +34,12 @@ slr_gd <- function(dat, response, explanatory, iterations = 30000){
     Deriv_m = (-2 / n) * sum(x * (y - y_pred))
     Deriv_c = (-2 / n) * sum(y - y_pred)
 
+
+
     m <- m - L * Deriv_m
     c <- c - L * Deriv_c
 
-    if (isTRUE(all.equal((L * Deriv_m), 0)) == TRUE) {
+    if (all((Deriv_m < 0.0000001)) & all((Deriv_c < 0.000000)) ) {
       break
     }
 
@@ -79,16 +81,16 @@ slr_gd <- function(dat, response, explanatory, iterations = 30000){
 #'@export
 mlr_gd <- function(dat, response, learning_rate = 0.005, iterations = 30000) {
 
-  dat <- dat %>%
-    mutate_all(scale)
-
   y <- dat %>% pull({{response}})
   x <- dat %>% select(-{{response}})
+
+  x <- x %>%
+    mutate_all(scale)
 
   #Names of explanatory variables
   explan_name <- dat %>%
     select(-{{response}}) %>%
-    names()
+    names() %>%
 
   #Adding intercept column
   x <- x %>%
@@ -106,7 +108,6 @@ mlr_gd <- function(dat, response, learning_rate = 0.005, iterations = 30000) {
 
   for (i in 1:iterations) {
 
-
     y_pred <- (x %*% thetas)
 
     deriv_thetas <- (-2 / num_explanatory) * t(x) %*% (y - y_pred)
@@ -121,7 +122,6 @@ mlr_gd <- function(dat, response, learning_rate = 0.005, iterations = 30000) {
     }
 
   }
-
 
   ### Compute coefficients by gradient descent
   ### Return a data frame of the same form as in the `multiple_linear_regression`

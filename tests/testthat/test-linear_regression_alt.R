@@ -4,7 +4,7 @@ test_that("simple linear regression by gradient descent is (approximately) corre
     slr_gd(mpg, hp)
 
   scaled_mtcars <- mtcars %>%
-    mutate_all(scale)
+    mutate(hp = scale(hp))
 
   mass_result <- lm(mpg ~ hp, data = scaled_mtcars)
 
@@ -23,7 +23,7 @@ test_that("multiple linear regression by gradient descent is correct", {
     mlr_gd(mpg)
 
   scaled_mtcars <- mtcars %>%
-    mutate_all(scale)
+    mutate(across(.cols = 2:11, scale))
 
   mass_result <- lm(mpg ~ hp + cyl, data = scaled_mtcars)
 
