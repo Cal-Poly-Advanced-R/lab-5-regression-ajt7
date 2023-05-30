@@ -4,7 +4,13 @@
 \alias{lasso_gd}
 \title{Implements lasso linear regression by gradient descent}
 \usage{
-lasso_gd(dat, response, learning_rate = 0.05, lambda = 0.8, iterations = 50000)
+lasso_gd(
+  dat,
+  response,
+  learning_rate = 0.001,
+  lambda = 0.5,
+  iterations = 50000
+)
 }
 \arguments{
 \item{dat}{A data frame}
